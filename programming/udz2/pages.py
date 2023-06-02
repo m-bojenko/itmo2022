@@ -61,6 +61,10 @@ class Page(Frame):
         Label(help_root, text='Для выбора одного из режимов, нажмите на одну из кнопок слева.', bg='#fafafa').place(x=5, y=25)
         Label(help_root, text='Не пытайтесь вводить некорректные значения. Например, записывать буквы в полях, '
                               'предназначенных для числовых значений', bg='#fafafa').place(x=5, y=45)
+        Label(help_root, text='В раскрывающихся списках Транспортных средств используются следующие обозначения: гр - грузоподъемность'
+                              ', д - длина, ш - ширина, в - высота', bg='#fafafa').place(x=5, y=45)
+        Label(help_root, text='В раскрывающихся списках Водителей используются следующие обозначения: с - стаж вождения',
+              bg='#fafafa').place(x=5, y=45)
 
     def update_data(self):
         pass
@@ -173,18 +177,22 @@ class Page1(Page):
                 if i not in symbols:
                     raise NoDigitsError
             num = self.arg_number.get()
-            if num[0] not in letters or not num[1].isdigit() or not num[2].isdigit() or not num[3].isdigit() or num[4] not in letters or num[5] not in letters or len(num) != 6:
+            if num[0].lower() not in letters or not num[1].isdigit() or not num[2].isdigit() or not num[3].isdigit() or \
+                    num[4].lower() not in letters or num[5].lower() not in letters or len(num) != 6:
                 raise IncorrectCarNumber
-            DataBase().add_transport(self.arg_type.get(), self.arg_brand.get(), self.arg_model.get(), self.arg_number.get(), float(self.arg_tonnage.get()),
-                                     float(self.arg_length.get()), float(self.arg_width.get()), float(self.arg_height.get()))
-            showinfo(title='Информация', message=f'Было добавлено новое Транспортное средство: {self.arg_brand.get()} {self.arg_model.get()} {self.arg_number.get()}')
+            DataBase().add_transport(self.arg_type.get(), self.arg_brand.get(), self.arg_model.get(),
+                                     self.arg_number.get(), float(self.arg_tonnage.get()), float(self.arg_length.get()),
+                                     float(self.arg_width.get()), float(self.arg_height.get()))
+            showinfo(title='Информация', message=f'Было добавлено новое Транспортное средство: {self.arg_brand.get()} '
+                                                 f'{self.arg_model.get()} {self.arg_number.get()}')
             self.clear()
         except EmptyEnter:
             showerror(title='Ошибка', message='Заполните, пожалуйста, все поля!')
         except NoDigitsError:
             showerror(title='Ошибка', message='Будьте внимательны! В некоторых полях должны быть введены числовые значения!')
         except IncorrectCarNumber:
-            showerror(title='Ошибка', message='Введите номер ТС в следующем формате: \"о111оо\", где о - одна из букв: у, к, е, н, х, в, а, р, о, с, м, т; а 0 - цифра.')
+            showerror(title='Ошибка', message='Введите номер ТС в следующем формате: \"о111оо\", где о - одна из букв: '
+                                              'у, к, е, н, х, в, а, р, о, с, м, т; а 0 - цифра.')
 
     def clear(self):
         self.arg_number.delete(0, END)
@@ -209,7 +217,7 @@ class Page2(Page):
         self.cars = DataBase().show_transport()
         self.cars_text = []  # список со строками (1 строка - информация по машине)
         for i in self.cars:
-            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
 
         self.frame0 = Frame(self)
         self.frame0.pack(fill='x')
@@ -255,7 +263,7 @@ class Page2(Page):
         self.cars = DataBase().show_transport()  # Обновление содержимого в combobox
         self.cars_text = []
         for i in self.cars:
-            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
         self.combobox['values'] = self.cars_text
 
 
@@ -316,7 +324,7 @@ class Page3(Page):
         free_cars = DataBase().show_booked_transport(str(self.cal.get_date()))
         free_cars_text = []  # список со строками (1 строка - информация по машине)
         for i in free_cars:
-            free_cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+            free_cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
 
         self.var2 = StringVar()
         self.combobox2 = ttk.Combobox(self, textvariable=self.var2, width=30, state='disabled')
@@ -331,7 +339,7 @@ class Page3(Page):
             free_cars = DataBase().show_free_transport(str(self.cal.get_date()))
         free_cars_text = []  # список со строками (1 строка - информация по машине)
         for i in free_cars:
-            free_cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+            free_cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
         self.combobox2['values'] = free_cars_text
 
     def bron(self):
@@ -346,7 +354,7 @@ class Page3(Page):
         sort_cars = DataBase().show_sort_transport()
         cars_text = []  # список со строками (1 строка - информация по машине)
         for i in sort_cars:
-            cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+            cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
         self.combobox['values'] = cars_text
         self.booked_btn['state'] = 'disabled'
         self.free_btn['state'] = 'disabled'
@@ -358,7 +366,7 @@ class Page3(Page):
         self.cars = DataBase().show_transport()  # Обновление содержимого в combobox
         self.cars_text = []
         for i in self.cars:
-            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
         self.combobox['values'] = self.cars_text
         self.combobox['state'] = 'normal'
         self.booked_btn['state'] = 'disabled'
@@ -368,9 +376,6 @@ class Page3(Page):
 
     def clear(self):
         self.combobox.set('')
-
-    def booked(self):
-        pass
 
 
 class Page4(Page):
@@ -455,6 +460,7 @@ class Page4(Page):
         self.label_date.pack(side='left', padx=5, pady=5)
         self.cal = Calendar(self.frame7, selectmode='day', year=2023, month=1, day=1, date_pattern="dd.mm.yyyy", state='disabled')
         self.cal.pack(side='left', padx=10)
+        self.cal.bind("<<CalendarSelected>>", self.selected)
 
         self.frame8 = Frame(self)
         self.frame8.pack(fill='x', padx=30)
@@ -462,7 +468,7 @@ class Page4(Page):
         self.cars = DataBase().show_free_transport(self.cal.get_date())
         self.cars_text = []  # список со строками (1 строка - информация по машине)
         for i in self.cars:
-            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
 
         self.label_cars = Label(self.frame8, text='Подходящий транспорт', width=30, anchor='e', state='disabled')
         self.label_cars.pack(side='left', padx=5, pady=5)
@@ -479,7 +485,7 @@ class Page4(Page):
         self.drivers = DataBase().show_free_drivers(self.cal.get_date())
         self.drivers_text = []  # список со строками (1 строка - информация по машине)
         for i in self.drivers:
-            self.drivers_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]}')
+            self.drivers_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} с: {i[4]}')
 
         self.label_drivers = Label(self.frame9, text='Свободные водители', width=30, anchor='e', state='disabled')
         self.label_drivers.pack(side='left', padx=5, pady=5)
@@ -488,33 +494,64 @@ class Page4(Page):
         self.combobox2['values'] = self.drivers_text
         self.combobox2['state'] = 'readonly'
         self.combobox2.pack(side='top', fill='x', pady=5, padx=30)
-        self.combobox2.bind("<<ComboboxSelected>>", self.selected2)
+        self.combobox2.bind("<<ComboboxSelected>>", self.selected1)
 
         self.frame10 = Frame(self)
         self.frame10.pack(fill='x', padx=30)
 
-        self.add_btn = Button(self.frame10, text='Подать заявку', width=15, command=self.action, state='disabled')
-        self.add_btn.pack(side='right', padx=20, pady=5)
-        self.clear_btn = Button(self.frame10, text='Очистить всё', width=15, command=self.clear, state='disabled')
-        self.clear_btn.pack(side='right', padx=20, pady=5)
+        self.push_btn = Button(self.frame10, text='Подать заявку', width=15, command=self.action, state='disabled')
+        self.push_btn.pack(side='right', padx=20, pady=5)
+        self.clear_all_btn = Button(self.frame10, text='Очистить всё', width=15, command=self.clear_all, state='disabled')
+        self.clear_all_btn.pack(side='right', padx=20, pady=5)
 
     def action(self):
+        mas_args = [self.arg_customer, self.arg_contacts, self.arg_contact_name, self.arg_weight,
+                    self.arg_length, self.arg_width, self.arg_height]
+        symbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
         try:
-            #TODO: доделать ошибки
-            DataBase().add_application(self.arg_customer, self.arg_contact_name, self.arg_contacts, self.arg_weight, self.arg_length,
-                                       self.arg_width, self.arg_height, self.cal.get_date(), self.combobox.get().split('.')[0], self.combobox2.get().split('.')[0])
+            for i in mas_args:
+                if not i.get():
+                    raise EmptyEnter
+            for i in self.arg_weight.get():
+                if i not in symbols:
+                    raise NoDigitsError
+            for i in self.arg_length.get():
+                if i not in symbols:
+                    raise NoDigitsError
+            for i in self.arg_width.get():
+                if i not in symbols:
+                    raise NoDigitsError
+            for i in self.arg_height.get():
+                if i not in symbols:
+                    raise NoDigitsError
+            DataBase().add_application(self.arg_customer.get(), self.arg_contact_name.get(), self.arg_contacts.get(),
+                                       float(self.arg_weight.get()), float(self.arg_length.get()), float(self.arg_width.get()),
+                                       float(self.arg_height.get()), self.cal.get_date(), float(self.combobox.get().split('.')[0]),
+                                       float(self.combobox2.get().split('.')[0]))
             showinfo(title='Информация', message=f'Была добавлена новая заявка')
-            self.clear()
+            self.update_data()
         except EmptyEnter:
             showerror(title='Ошибка', message='Заполните, пожалуйста, все поля!')
         except NoDigitsError:
             showerror(title='Ошибка', message='Будьте внимательны! В некоторых полях должны быть введены числовые значения!')
 
-    def selected1(self, event):
-        pass
+    def selected(self, event):
+        free_cars = DataBase().show_free_transport(str(self.cal.get_date()))
+        free_cars_text = []  # список со строками (1 строка - информация по машине)
+        for i in free_cars:
+            if i[5] >= float(self.arg_weight.get()) and i[6] > float(self.arg_length.get()) and \
+                    i[7] > float(self.arg_width.get()) and i[8] > float(self.arg_height.get()):
+                free_cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
+        self.combobox['values'] = free_cars_text
+        free_drivers = DataBase().show_free_drivers(str(self.cal.get_date()))
+        free_drivers_text = []  # список со строками (1 строка - информация по водителю)
+        for i in free_drivers:
+            free_drivers_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} с: {i[4]}')
+        self.combobox2['values'] = free_drivers_text
 
-    def selected2(self, event):
-        pass
+    def selected1(self, event):
+        if self.combobox.get() != '' and self.combobox2.get() != '':
+            self.push_btn['state'] = 'normal'
 
     def utv(self):
         mas_args = [self.arg_customer, self.arg_contacts, self.arg_contact_name, self.arg_weight,
@@ -540,18 +577,54 @@ class Page4(Page):
             self.label_date['state'] = 'normal'
             self.label_cars['state'] = 'normal'
             self.label_drivers['state'] = 'normal'
+            self.combobox['state'] = 'normal'
+            self.combobox2['state'] = 'normal'
+            self.cal['state'] = 'normal'
+            self.clear_all_btn['state'] = 'normal'
         except EmptyEnter:
             showerror(title='Ошибка', message='Заполните, пожалуйста, все поля!')
         except NoDigitsError:
             showerror(title='Ошибка', message='Будьте внимательны! В некоторых полях должны быть введены числовые значения!')
 
-    def clear(self):
+    def clear_all(self):
         self.combobox.set('')
-
-    def update_data(self):
-        self.clear()
+        self.combobox2.set('')
         self.combobox['state'] = 'disabled'
         self.combobox2['state'] = 'disabled'
+        self.cal['state'] = 'disabled'
+        self.label_date['state'] = 'disabled'
+        self.label_cars['state'] = 'disabled'
+        self.label_drivers['state'] = 'disabled'
+        self.clear_all_btn['state'] = 'disabled'
+        self.push_btn['state'] = 'disabled'
+        self.clear()
+
+    def clear(self):
+        self.arg_customer.delete(0, END)
+        self.arg_contact_name.delete(0, END)
+        self.arg_contacts.delete(0, END)
+        self.arg_weight.delete(0, END)
+        self.arg_height.delete(0, END)
+        self.arg_width.delete(0, END)
+        self.arg_length.delete(0, END)
+
+    def update_data(self):
+        self.clear_all()
+        self.combobox['state'] = 'disabled'
+        self.combobox2['state'] = 'disabled'
+
+        self.drivers = DataBase().show_free_drivers(self.cal.get_date())
+        self.drivers_text = []  # список со строками (1 строка - информация по машине)
+        for i in self.drivers:
+            self.drivers_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} с: {i[4]}')
+
+        self.cars = DataBase().show_free_transport(self.cal.get_date())
+        self.cars_text = []  # список со строками (1 строка - информация по машине)
+        for i in self.cars:
+            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
+
+        self.combobox['values'] = self.cars_text
+        self.combobox2['values'] = self.drivers_text
 
 
 class Page5(Page):
@@ -563,7 +636,7 @@ class Page5(Page):
         cars = DataBase().show_transport()
         cars_text = []  # список со строками (1 строка - информация по машине)
         for i in cars:
-            cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+            cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
 
         self.frame0 = Frame(self)
         self.frame0.pack(fill='x')
@@ -623,7 +696,7 @@ class Page5(Page):
         self.cars = DataBase().show_free_transport(self.cal.get_date())
         self.cars_text = []  # список со строками (1 строка - информация по машине)
         for i in self.cars:
-            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+            self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
 
         self.label_cars = Label(self.frame8, text='Подходящий транспорт', width=30, anchor='e')
         self.label_cars.pack(side='left', padx=5, pady=5)
@@ -660,7 +733,7 @@ class Page5(Page):
                                                            float(self.arg_width.get()), float(self.arg_height.get()), self.cal.get_date())
             self.cars_text = []  # список со строками (1 строка - информация по машине)
             for i in self.cars:
-                self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} {i[5]} {i[6]} {i[7]} {i[8]}')
+                self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
 
             self.combobox['values'] = self.cars_text
         except EmptyEnter:
@@ -677,6 +750,7 @@ class Page5(Page):
     def update_data(self):
         self.clear()
         self.combobox['state'] = 'disabled'
+
 
 if __name__ == "__main__":
     root = Tk()
@@ -696,7 +770,6 @@ if __name__ == "__main__":
     helpmenu = Menu(mainmenu, tearoff=0)
     helpmenu.add_command(label="О программе", command=Page().help_me)
     mainmenu.add_cascade(label="Файл", menu=filemenu)
-    mainmenu.add_cascade(label="Операции", menu=fileclear)
     mainmenu.add_cascade(label="Справка", menu=helpmenu)
 
     root.mainloop()
