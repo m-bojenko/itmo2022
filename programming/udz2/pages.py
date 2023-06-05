@@ -51,7 +51,7 @@ class Page(Frame):
         help_root = Tk()
         help_root['bg'] = '#fafafa'  # background
         help_root.title('Справка')  # title of window
-        help_root.geometry('900x120')  # size of the window
+        help_root.geometry('900x140')  # size of the window
         help_root.resizable(width=False, height=False)  # user can't change size of the window
 
         help_root.iconbitmap('help.ico')
@@ -62,9 +62,11 @@ class Page(Frame):
         Label(help_root, text='Не пытайтесь вводить некорректные значения. Например, записывать буквы в полях, '
                               'предназначенных для числовых значений', bg='#fafafa').place(x=5, y=45)
         Label(help_root, text='В раскрывающихся списках Транспортных средств используются следующие обозначения: гр - грузоподъемность'
-                              ', д - длина, ш - ширина, в - высота', bg='#fafafa').place(x=5, y=45)
+                              ', д - длина, ш - ширина, в - высота', bg='#fafafa').place(x=5, y=65)
         Label(help_root, text='В раскрывающихся списках Водителей используются следующие обозначения: с - стаж вождения',
-              bg='#fafafa').place(x=5, y=45)
+              bg='#fafafa').place(x=5, y=85)
+        Label(help_root, text='Максимальная грузоподъемность ТС - 24 т; макс. ширина ТС - 2.6 м; макс. высота ТС - 2.7 м; макс. длина ТС - 20 м.',
+              bg='#fafafa').place(x=5, y=105)
 
     def update_data(self):
         pass
@@ -167,15 +169,23 @@ class Page1(Page):
             for i in self.arg_tonnage.get():
                 if i not in symbols:
                     raise NoDigitsError
+            if float(self.arg_tonnage.get()) > 24:
+                raise TooBigNumber
             for i in self.arg_length.get():
                 if i not in symbols:
                     raise NoDigitsError
+            if float(self.arg_length.get()) > 20:
+                raise TooBigNumber
             for i in self.arg_width.get():
                 if i not in symbols:
                     raise NoDigitsError
+            if float(self.arg_width.get()) > 2.6:
+                raise TooBigNumber
             for i in self.arg_height.get():
                 if i not in symbols:
                     raise NoDigitsError
+            if float(self.arg_height.get()) > 2.7:
+                raise TooBigNumber
             num = self.arg_number.get()
             if num[0].lower() not in letters or not num[1].isdigit() or not num[2].isdigit() or not num[3].isdigit() or \
                     num[4].lower() not in letters or num[5].lower() not in letters or len(num) != 6:
@@ -193,6 +203,8 @@ class Page1(Page):
         except IncorrectCarNumber:
             showerror(title='Ошибка', message='Введите номер ТС в следующем формате: \"о111оо\", где о - одна из букв: '
                                               'у, к, е, н, х, в, а, р, о, с, м, т; а 0 - цифра.')
+        except TooBigNumber:
+            showerror(title='Ошибка', message='Значение некоторых полей должно быть меньше! Проверьте справку.')
 
     def clear(self):
         self.arg_number.delete(0, END)
@@ -241,12 +253,18 @@ class Page2(Page):
         self.clear_btn.pack(side='right', padx=20, pady=10)
 
     def action(self):
-        current_transport = self.var.get()
-        id_transport = current_transport.split('.')[0]
-        answer = askyesno(title='Предупреждение', message=f'Вы уверены, что хотите удалить транспорт {current_transport}?')
-        if answer:
-            DataBase().delete_transport(int(id_transport))
-            showinfo(title='Информация', message=f'Было удалено Транспортное средство: {current_transport}')
+        try:
+            current_transport = self.var.get()
+            id_transport = current_transport.split('.')[0]
+            if DataBase().if_booked(id_transport):
+                raise DeleteBookedTransport
+            answer = askyesno(title='Предупреждение', message=f'Вы уверены, что хотите удалить транспорт {current_transport}?')
+            if answer:
+                DataBase().delete_transport(int(id_transport))
+                showinfo(title='Информация', message=f'Было удалено Транспортное средство: {current_transport}')
+                self.update_data()
+        except DeleteBookedTransport:
+            showerror(title='Ошибка', message='Этот транспорт забронирован для перевозки!')
             self.update_data()
 
     def selected(self, event):
@@ -558,7 +576,12 @@ class Page4(Page):
                     self.arg_length, self.arg_width, self.arg_height]
         symbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
 
+        cars = DataBase().show_suitable_transport(float(self.arg_weight.get()), float(self.arg_length.get()),
+                                                  float(self.arg_width.get()), float(self.arg_height.get()), self.cal.get_date())
+
         try:
+            if not cars:
+                raise NoSuitableCars
             for i in mas_args:
                 if not i.get():
                     raise EmptyEnter
@@ -585,6 +608,8 @@ class Page4(Page):
             showerror(title='Ошибка', message='Заполните, пожалуйста, все поля!')
         except NoDigitsError:
             showerror(title='Ошибка', message='Будьте внимательны! В некоторых полях должны быть введены числовые значения!')
+        except NoSuitableCars:
+            showerror(title='Ошибка', message='В базе данных нет подходящего транспорта.')
 
     def clear_all(self):
         self.combobox.set('')
@@ -727,11 +752,14 @@ class Page5(Page):
             for i in self.arg_height.get():
                 if i not in symbols:
                     raise NoDigitsError
-            self.combobox['state'] = 'normal'
 
             self.cars = DataBase().show_suitable_transport(float(self.arg_weight.get()), float(self.arg_length.get()),
                                                            float(self.arg_width.get()), float(self.arg_height.get()), self.cal.get_date())
+            if not self.cars:
+                raise NoSuitableCars
+
             self.cars_text = []  # список со строками (1 строка - информация по машине)
+            self.combobox['state'] = 'normal'
             for i in self.cars:
                 self.cars_text.append(f'{i[0]}.  {i[1]} {i[2]} {i[3]} {i[4]} гр: {i[5]} д: {i[6]} ш: {i[7]} в: {i[8]}')
 
@@ -740,6 +768,9 @@ class Page5(Page):
             showerror(title='Ошибка', message='Заполните, пожалуйста, все поля!')
         except NoDigitsError:
             showerror(title='Ошибка', message='Будьте внимательны! Во всех полях должны быть введены числовые значения!')
+        except NoSuitableCars:
+            showerror(title='Ошибка', message='В базе данных нет подходящего транспорта')
+            self.combobox['state'] = 'disabled'
 
     def clear(self):
         self.arg_length.delete(0, END)
