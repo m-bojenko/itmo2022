@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 
 class DataBase:
@@ -109,9 +110,8 @@ class DataBase:
 
             drivers = []
             for i in self.show_driver():
-                if i in id_drivers:
+                if i[0] in id_drivers:
                     drivers.append(i)
-
             connection.commit()
 
             cursor.close()
@@ -205,5 +205,38 @@ class DataBase:
                 suit_trans.append(i)
         return suit_trans
 
+    def if_booked(self, id_transport):
+        answer = False
+
+        try:
+            connection = sqlite3.connect('transportation.db')
+
+            cursor = connection.cursor()
+            print("База данных успешно подключена к SQLite")
+
+            cursor.execute('''SELECT * FROM tApplications WHERE idTransport = ?''', (id_transport,))
+            apps = cursor.fetchall()
+            for i in apps:
+                date = i[8].split('.')
+                date_date = datetime.date(int(date[2]), int(date[1]), int(date[0]))
+                if date_date >= datetime.date.today():
+                    answer = True
+
+            connection.commit()
+
+            cursor.close()
+        except sqlite3.Error as error:
+            print("Ошибка при подключении к sqlite", error)
+        finally:
+            if (connection):
+                connection.commit()
+                connection.close()
+                print("Соединение с SQLite закрыто")
+                return answer
+
 
 #  print(DataBase().show_booked_transport('23.05.2023'))
+#  if datetime.date(2023, 6, 5) > datetime.date.today():
+#      print('true')
+#  else:
+#      print('false')
